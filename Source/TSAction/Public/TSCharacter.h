@@ -26,7 +26,13 @@ protected:
 
 	void MoveRight(float value);
 
-	void Aim(float value);
+	void LookUp(float value);
+
+	void LookRight(float value);
+
+	void SetXRotation(float value);
+
+	void SetYRotation(float value);
 
 protected:
 
@@ -35,6 +41,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Player")
 	USpringArmComponent* SpringArm;
+
+	float GamepadDeadZone;
+
+	FVector WhereToLook;
 
 public:	
 	// Called every frame
