@@ -26,13 +26,20 @@ protected:
 
 	void MoveRight(float value);
 
+	// Get the value returned from the y axis of the controller
 	void LookUp(float value);
 
+	// Get the value returned from the x axis of the controller
 	void LookRight(float value);
 
-	void SetXRotation(float value);
+	/*  
+		Rotate character to the desired direction. 
+		This is based on the desired direction given from player input
+	*/
+	void Turn();
 
-	void SetYRotation(float value);
+	// Rotate character to the desired direction based on a given direction
+	void Turn(FVector direction);
 
 protected:
 
@@ -42,9 +49,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Player")
 	USpringArmComponent* SpringArm;
 
+	// The deadzone of the analog stick axes.
 	float GamepadDeadZone;
-
-	FVector WhereToLook;
+	bool bWantsToAim;
+	FVector DesiredDirection;
 
 public:	
 	// Called every frame

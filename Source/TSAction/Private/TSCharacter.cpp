@@ -5,6 +5,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "TSAction.h"
 
 // Sets default values
 ATSCharacter::ATSCharacter()
@@ -15,63 +18,87 @@ ATSCharacter::ATSCharacter()
 	// Camera Component
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-
+	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArm);
 
+	// Turning;
+	bWantsToAim = false;
 	GamepadDeadZone = 0.25f;
+	DesiredDirection = FVector::ZeroVector;
+	
+	// Movement
+	GetCharacterMovement()->MaxAcceleration = 5000.f;
+	GetCharacterMovement()->MaxWalkSpeed = 800.f;
 }
 
 // Called when the game starts or when spawned
 void ATSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ATSCharacter::MoveForward(float value)
 {
-	AddMovementInput(FVector(1.f,0.f,0.f) * value);
+	AddMovementInput(FVector(0.f,1.f,0.f) * value);
 }
 
 void ATSCharacter::MoveRight(float value)
 {
-	AddMovementInput(FVector(0.f,1.f,0.f) * value);
+	AddMovementInput(FVector(1.f,0.f,0.f) * value);
 }
 
 void ATSCharacter::LookUp(float value)
 {
-	SetXRotation(value);
+	DesiredDirection.Y = value;
 }
 
 void ATSCharacter::LookRight(float value)
 {
-	SetYRotation(value);
+	DesiredDirection.X = value;
 }
 
-void ATSCharacter::SetXRotation(float value)
-{
-	WhereToLook.X = value;
-	if (WhereToLook.Size() > GamepadDeadZone)
-	{
-		GetController()->SetControlRotation(WhereToLook.Rotation());
-	}
+void ATSCharacter::Turn()
+{	
+	GetController()->SetControlRotation(DesiredDirection.Rotation());
 }
 
-void ATSCharacter::SetYRotation(float value)
+void ATSCharacter::Turn(FVector direction)
 {
-	WhereToLook.Y = value;
-	if (WhereToLook.Size() > GamepadDeadZone)
-	{
-		GetController()->SetControlRotation(WhereToLook.Rotation());
-	}
+	GetController()->SetControlRotation(direction.Rotation());
 }
 
 // Called every frame
 void ATSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+#pragma region Turn functionality
+	// Turn if desired 
+	bWantsToAim = (DesiredDirection.Size() > GamepadDeadZone) ? true : false;
+	if (bWantsToAim)
+	{
+		
+		Turn();
+		// Turn results
+		UE_LOG(LogTemp, Log, TEXT("Turn Results: %s, "), *DesiredDirection.ToString());
+		UE_LOG(LogTemp, Log, TEXT("Wants to Aim?: %s, "), (this->bWantsToAim ? TEXT("TRUE") : TEXT("FALSE")));
+	}
+	else
+	{
+		bWantsToAim = false;
+	}
 
+	// Turn if moving
+	FVector CurrentAcceleration = GetCharacterMovement()->GetCurrentAcceleration();
+	if (!bWantsToAim && CurrentAcceleration != FVector::ZeroVector)
+	{
+		Turn(CurrentAcceleration);
+
+	}
+#pragma endregion
+
+	
 }
 
 // Called to bind functionality to input
@@ -84,7 +111,7 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("MoveRight", this, &ATSCharacter::MoveRight);
 
 	// Aiming
-	PlayerInputComponent->BindAxis("LookUp", this, &ATSCharacter::LookUp);
-	PlayerInputComponent->BindAxis("LookRight", this, &ATSCharacter::LookRight);
+	PlayerInputComponent->BindAxis(Y_AXIS_INPUT_NAME, this, &ATSCharacter::LookUp);
+	PlayerInputComponent->BindAxis(X_AXIS_INPUT_NAME, this, &ATSCharacter::LookRight);
 }
 
