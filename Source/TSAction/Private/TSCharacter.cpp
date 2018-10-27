@@ -26,7 +26,8 @@ ATSCharacter::ATSCharacter()
 	bWantsToAim = false;
 	GamepadDeadZone = 0.25f;
 	DesiredDirection = FVector::ZeroVector;
-	
+	secondsToTurn = 0.3;
+
 	// Movement
 	GetCharacterMovement()->MaxAcceleration = 5000.f;
 	GetCharacterMovement()->MaxWalkSpeed = 800.f;
@@ -68,17 +69,25 @@ void ATSCharacter::Turn(FVector direction)
 	GetController()->SetControlRotation(direction.Rotation());
 }
 
+void ATSCharacter::Turn(float direction)
+{
+	GetController()->SetControlRotation(FRotator(0,direction,0));
+}
+
 // Called every frame
 void ATSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 #pragma region Turn functionality
+
 	// Turn if desired 
 	bWantsToAim = (DesiredDirection.Size() > GamepadDeadZone) ? true : false;
+
+	// TODO: Smoothly turn to the new direction
+	// FVector newDir = FMath::VInterpTo(GetActorLocation(), CurrentAcceleration, DeltaTime, secondsToTurn);
 	if (bWantsToAim)
 	{
-		
 		Turn();
 		// Turn results
 		UE_LOG(LogTemp, Log, TEXT("Turn Results: %s, "), *DesiredDirection.ToString());
@@ -89,12 +98,11 @@ void ATSCharacter::Tick(float DeltaTime)
 		bWantsToAim = false;
 	}
 
-	// Turn if moving
+	// Turn in direction of acceleration if moving
 	FVector CurrentAcceleration = GetCharacterMovement()->GetCurrentAcceleration();
 	if (!bWantsToAim && CurrentAcceleration != FVector::ZeroVector)
 	{
 		Turn(CurrentAcceleration);
-
 	}
 #pragma endregion
 

@@ -41,6 +41,8 @@ protected:
 	// Rotate character to the desired direction based on a given direction
 	void Turn(FVector direction);
 
+	void Turn(float direction);
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Player")
@@ -53,6 +55,9 @@ protected:
 	float GamepadDeadZone;
 	bool bWantsToAim;
 	FVector DesiredDirection;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float secondsToTurn;
 
 public:	
 	// Called every frame
