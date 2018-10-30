@@ -85,7 +85,7 @@ void ATSCharacter::Tick(float DeltaTime)
 	bWantsToAim = (DesiredDirection.Size() > GamepadDeadZone) ? true : false;
 
 	// TODO: Smoothly turn to the new direction
-	// FVector newDir = FMath::VInterpTo(GetActorLocation(), CurrentAcceleration, DeltaTime, secondsToTurn);
+	// FVector newDir = FMath::VInterpTo(GetActorLocation(), DesiredDirection, DeltaTime, secondsToTurn);
 	if (bWantsToAim)
 	{
 		Turn();
