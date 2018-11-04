@@ -36,8 +36,9 @@ ATSCharacter::ATSCharacter()
 	SprintSpeed = 1000.f;
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 	bWantsToSprint = false;
-	SprintTurnResist = 10.f;
-	
+	SprintTurnResistRate = 10000.f;
+	bSprintTurnResist = true;
+
 	// Weapon
 	ProjWeaponSocketName = "ProjectileWeaponSocket";
 
@@ -49,11 +50,13 @@ void ATSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Spawn Weapon
 	if (StartWeapon)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		SpawnParams.Owner = this;
+		SpawnParams.Instigator = this;
 
 		FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget,false);
 
@@ -91,7 +94,7 @@ void ATSCharacter::Tick(float DeltaTime)
 	{
 		if (bWantsToSprint)
 		{
-			FVector newRot = FMath::VInterpNormalRotationTo(GetActorLocation(), AccDirection, DeltaTime, SprintTurnResist);
+			FVector newRot = FMath::VInterpNormalRotationTo(GetActorLocation(), AccDirection, DeltaTime, SprintTurnResistRate);
 			Turn(newRot);
 		}
 		else
@@ -111,27 +114,13 @@ void ATSCharacter::Tick(float DeltaTime)
 void ATSCharacter::MoveForward(float value)
 {
 	FVector moveY = FVector(0.f, 1.f, 0.f);
-	if (!bWantsToSprint)
-	{
-		OnMove(value, sprintDirY, moveY, TurnResist);
-	}
-	else
-	{
-		OnSprint(value, sprintDirY, moveY, TurnResist);
-	}
+	OnMove(value, moveY);
 }
 
 void ATSCharacter::MoveRight(float value)
 {
 	FVector moveX = FVector(1.f, 0.f, 0.f);
-	if (!bWantsToSprint)
-	{
-		OnMove(value, sprintDirX, moveX, TurnResist);
-	}
-	else
-	{
-		OnSprint(value, sprintDirX, moveX, TurnResist);
-	}
+	OnMove(value, moveX);
 }
 
 void ATSCharacter::LookUp(float value)
@@ -144,12 +133,8 @@ void ATSCharacter::LookRight(float value)
 	DesiredDirection.X = value;
 }
 
-void ATSCharacter::OnMove(float inputVal, float storeVal, FVector dir, bool sprintEnabled)
+void ATSCharacter::OnMove(float inputVal, FVector dir)
 {
-	if (sprintEnabled)
-	{
-		storeVal = inputVal;
-	}
 	AddMovementInput(dir * inputVal);
 }
 
@@ -157,8 +142,8 @@ void ATSCharacter::OnSprint(float inputVal, float storedDir, FVector dir, bool t
 {
 	if (turnResist)
 	{
-		if (inputVal >= storedDir - SprintTurnResist
-			&& inputVal <= storedDir + SprintTurnResist)
+		if (inputVal >= storedDir - SprintTurnResistRate
+			&& inputVal <= storedDir + SprintTurnResistRate)
 		{
 			AddMovementInput(dir * inputVal);
 		}
@@ -168,7 +153,6 @@ void ATSCharacter::OnSprint(float inputVal, float storedDir, FVector dir, bool t
 		AddMovementInput(dir * inputVal);
 	}
 }
-
 
 void ATSCharacter::Turn()
 {	
@@ -205,6 +189,21 @@ void ATSCharacter::StopSprint()
 	}
 }
 
+void ATSCharacter::FireWeapon()
+{
+	if (CurrentWeapon && !bWantsToSprint)
+	{
+		CurrentWeapon->StartFire();
+	}
+}
+
+void ATSCharacter::StopFiring()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopFire();
+	}
+}
 
 #pragma endregion
 
@@ -224,7 +223,13 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(X_AXIS_INPUT_NAME, this, &ATSCharacter::LookRight);
 
 	// Actions
+
+	// Sprinting
 	PlayerInputComponent->BindAction("StartSprint", IE_Pressed, this, &ATSCharacter::StartSprint);
 	PlayerInputComponent->BindAction("StopSprint", IE_Released, this, &ATSCharacter::StopSprint);
+
+	// Firing weapon
+	PlayerInputComponent->BindAction("FireWeapon", IE_Pressed, this, &ATSCharacter::FireWeapon);
+	PlayerInputComponent->BindAction("StopFiring", IE_Released, this, &ATSCharacter::StopFiring);
 }
 
