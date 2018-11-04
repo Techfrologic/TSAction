@@ -4,6 +4,7 @@
 #include "Public/TSCharacter.h"
 #include "Public/TSProjectile.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine.h"
 
 // Sets default values
 ATSProjectileWeapon::ATSProjectileWeapon()
@@ -17,7 +18,7 @@ ATSProjectileWeapon::ATSProjectileWeapon()
 	MuzzleSocketName = "MuzzleSocket";
 
 	// Firing
-	RateOfFire = 2.f;
+	RateOfFire = 500.f;
 }
 
 void ATSProjectileWeapon::Fire()
@@ -41,9 +42,11 @@ void ATSProjectileWeapon::StartFire()
 {
 	// Getting the greater value between the calculated delay and 0.
 	float firstDelay = FMath::Max((LastFireTime + TimeBetweenShots) - GetWorld()->TimeSeconds, 0.f);
-
+	
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_TimeBetweenShots, this, 
 		&ATSProjectileWeapon::Fire, TimeBetweenShots, true, firstDelay);
+
+	LastFireTime = GetWorld()->GetTimeSeconds();
 }
 
 void ATSProjectileWeapon::StopFire()
@@ -65,6 +68,5 @@ void ATSProjectileWeapon::BeginPlay()
 void ATSProjectileWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

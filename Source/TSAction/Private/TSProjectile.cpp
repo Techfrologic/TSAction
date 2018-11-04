@@ -17,6 +17,7 @@ ATSProjectile::ATSProjectile()
 	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Overlap);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody, ECollisionResponse::ECR_Overlap);
 	Mesh->OnComponentBeginOverlap.AddDynamic(this, &ATSProjectile::HandleOnOverlap);
 	RootComponent = Mesh;
 

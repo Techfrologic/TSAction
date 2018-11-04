@@ -46,8 +46,6 @@ protected:
 	// Rotate character to the desired direction based on a given direction
 	void Turn(FVector direction);
 
-	void Turn(float direction);
-
 #pragma endregion
 
 #pragma region Action Functions
@@ -87,25 +85,29 @@ protected:
 	// The deadzone of the analog stick axes.
 	float GamepadDeadZone;
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	bool bWantsToAim;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Player")
 	bool bWantsToSprint;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float SprintSpeed;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float JogSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
+	float AimWalkSpeed;
 
 	// Resistance while sprinting
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta=(ClampMin= 0.1))
 	float SprintTurnResistRate;
 
 	// If true, adds turn resistance when sprinting. 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	bool bSprintTurnResist;
-
+	
 	FVector DesiredDirection;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
@@ -122,7 +124,4 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	
-	
 };

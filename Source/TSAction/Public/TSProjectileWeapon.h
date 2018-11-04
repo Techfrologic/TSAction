@@ -49,7 +49,7 @@ protected:
 	float LastFireTime;
 
 	// Number of seconds weapon can fire a projectile 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon;")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta=(ClampMin = 0.f))
 	float RateOfFire;
 
 protected:

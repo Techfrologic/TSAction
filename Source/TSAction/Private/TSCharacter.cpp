@@ -35,6 +35,7 @@ ATSCharacter::ATSCharacter()
 	JogSpeed = 800.f;
 	SprintSpeed = 1000.f;
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+	AimWalkSpeed = JogSpeed / 2;
 	bWantsToSprint = false;
 	SprintTurnResistRate = 10000.f;
 	bSprintTurnResist = true;
@@ -78,10 +79,6 @@ void ATSCharacter::Tick(float DeltaTime)
 	if (bWantsToAim && !bWantsToSprint)
 	{
 		Turn();
-
-		// Turn results
-		UE_LOG(LogTemp, Log, TEXT("Turn Results: %s, "), *DesiredDirection.ToString());
-		UE_LOG(LogTemp, Log, TEXT("Wants to Aim?: %s, "), (this->bWantsToAim ? TEXT("TRUE") : TEXT("FALSE")));
 	}
 	else
 	{
@@ -157,16 +154,21 @@ void ATSCharacter::OnSprint(float inputVal, float storedDir, FVector dir, bool t
 void ATSCharacter::Turn()
 {	
 	GetController()->SetControlRotation(DesiredDirection.Rotation());
+
+	if (bWantsToAim)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
+	}
 }
 
 void ATSCharacter::Turn(FVector direction)
 {
 	GetController()->SetControlRotation(direction.Rotation());
-}
 
-void ATSCharacter::Turn(float direction)
-{
-	GetController()->SetControlRotation(FRotator(0,direction,0));
+	if (bWantsToAim)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
+	}
 }
 #pragma endregion
 
@@ -225,11 +227,11 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Actions
 
 	// Sprinting
-	PlayerInputComponent->BindAction("StartSprint", IE_Pressed, this, &ATSCharacter::StartSprint);
-	PlayerInputComponent->BindAction("StopSprint", IE_Released, this, &ATSCharacter::StopSprint);
+	PlayerInputComponent->BindAction("StartSprint", EInputEvent::IE_Pressed, this, &ATSCharacter::StartSprint);
+	PlayerInputComponent->BindAction("StopSprint", EInputEvent::IE_Released, this, &ATSCharacter::StopSprint);
 
 	// Firing weapon
-	PlayerInputComponent->BindAction("FireWeapon", IE_Pressed, this, &ATSCharacter::FireWeapon);
-	PlayerInputComponent->BindAction("StopFiring", IE_Released, this, &ATSCharacter::StopFiring);
+	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacter::FireWeapon);
+	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacter::StopFiring);
 }
 
