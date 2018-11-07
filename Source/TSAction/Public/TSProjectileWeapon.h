@@ -52,6 +52,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta=(ClampMin = 0.f))
 	float RateOfFire;
 
+	// Time (in seconds) to buffer when to allow firing 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.f))
+	float FiringBuffer;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

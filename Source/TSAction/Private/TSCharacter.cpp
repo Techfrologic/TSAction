@@ -28,6 +28,7 @@ ATSCharacter::ATSCharacter()
 	// Turning;
 	bWantsToAim = false;
 	GamepadDeadZone = 0.25f;
+	AimWalkBackTolerance = 0.5f;
 	DesiredDirection = FVector::ZeroVector;
 
 	// Movement
@@ -37,8 +38,6 @@ ATSCharacter::ATSCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 	AimWalkSpeed = JogSpeed / 2;
 	bWantsToSprint = false;
-	SprintTurnResistRate = 10000.f;
-	bSprintTurnResist = true;
 
 	// Weapon
 	ProjWeaponSocketName = "ProjectileWeaponSocket";
@@ -78,7 +77,7 @@ void ATSCharacter::Tick(float DeltaTime)
 	bWantsToAim = (DesiredDirection.Size() > GamepadDeadZone) ? true : false;
 	if (bWantsToAim && !bWantsToSprint)
 	{
-		Turn();
+		AimTurn();
 	}
 	else
 	{
@@ -89,26 +88,26 @@ void ATSCharacter::Tick(float DeltaTime)
 	FVector AccDirection = GetCharacterMovement()->GetCurrentAcceleration();
 	if (!bWantsToAim && AccDirection != FVector::ZeroVector)
 	{
-		if (bWantsToSprint)
+		Turn(AccDirection);
+
+		/*if (bWantsToSprint)
 		{
-			FVector newRot = FMath::VInterpNormalRotationTo(GetActorLocation(), AccDirection, DeltaTime, SprintTurnResistRate);
+			float turnRate = 10000.f;
+			FVector newRot = FMath::VInterpNormalRotationTo(GetActorLocation(), AccDirection, DeltaTime, turnRate);
 			Turn(newRot);
 		}
 		else
 		{
 			Turn(AccDirection);
-		}
+		}*/
 	}
 
 #pragma endregion
-
-
 }
 
-/*** TODO: Interpolate the value param to slow down X & Y Turning ***/
 #pragma region Movement Functions
 
-void ATSCharacter::MoveForward(float value)
+void ATSCharacter::MoveUp(float value)
 {
 	FVector moveY = FVector(0.f, 1.f, 0.f);
 	OnMove(value, moveY);
@@ -120,6 +119,18 @@ void ATSCharacter::MoveRight(float value)
 	OnMove(value, moveX);
 }
 
+void ATSCharacter::OnMove(float value, FVector dir)
+{
+	AddMovementInput(dir * value);
+
+	if (!bWantsToAim)
+	{
+		SetWalkSpeed(JogSpeed);
+	}
+}
+#pragma endregion
+
+#pragma region Turn/Aiming Functions
 void ATSCharacter::LookUp(float value)
 {
 	DesiredDirection.Y = value;
@@ -130,64 +141,59 @@ void ATSCharacter::LookRight(float value)
 	DesiredDirection.X = value;
 }
 
-void ATSCharacter::OnMove(float inputVal, FVector dir)
-{
-	AddMovementInput(dir * inputVal);
-}
-
-void ATSCharacter::OnSprint(float inputVal, float storedDir, FVector dir, bool turnResist)
-{
-	if (turnResist)
-	{
-		if (inputVal >= storedDir - SprintTurnResistRate
-			&& inputVal <= storedDir + SprintTurnResistRate)
-		{
-			AddMovementInput(dir * inputVal);
-		}
-	}
-	else
-	{
-		AddMovementInput(dir * inputVal);
-	}
-}
-
-void ATSCharacter::Turn()
+void ATSCharacter::AimTurn()
 {	
 	GetController()->SetControlRotation(DesiredDirection.Rotation());
 
+	// Slow down character if walking backwards and aiming
 	if (bWantsToAim)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
+		GetVelocity().Normalize();
+		float dotProd = FVector::DotProduct(GetActorForwardVector(), GetVelocity());
+		if (dotProd < AimWalkBackTolerance )
+		{
+			SetWalkSpeed(AimWalkSpeed);
+		}
+		else
+		{
+			SetWalkSpeed(JogSpeed);
+		}
 	}
 }
 
 void ATSCharacter::Turn(FVector direction)
 {
 	GetController()->SetControlRotation(direction.Rotation());
+}
 
-	if (bWantsToAim)
+void ATSCharacter::SetWalkSpeed(float value)
+{
+	if (value > 0.f)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = value;
 	}
 }
-#pragma endregion
+#pragma endregion 
 
 #pragma region Action Functions
+
 void ATSCharacter::StartSprint()
 {
+	// Increase speed if not already sprinting
 	if (!bWantsToSprint && !bWantsToAim)
 	{
 		bWantsToSprint = true;
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		SetWalkSpeed(SprintSpeed);
 	}
 }
 
 void ATSCharacter::StopSprint()
 {
+	// Stop sprinting if already doing so.
 	if (bWantsToSprint)
 	{
 		bWantsToSprint = false;
-		GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+		SetWalkSpeed(JogSpeed);
 	}
 }
 
@@ -217,7 +223,7 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// Movement binding
-	PlayerInputComponent->BindAxis("MoveForward", this, &ATSCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveUp", this, &ATSCharacter::MoveUp);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ATSCharacter::MoveRight);
 
 	// Aiming
@@ -227,8 +233,8 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Actions
 
 	// Sprinting
-	PlayerInputComponent->BindAction("StartSprint", EInputEvent::IE_Pressed, this, &ATSCharacter::StartSprint);
-	PlayerInputComponent->BindAction("StopSprint", EInputEvent::IE_Released, this, &ATSCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ATSCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ATSCharacter::StopSprint);
 
 	// Firing weapon
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacter::FireWeapon);

@@ -26,47 +26,36 @@ protected:
 #pragma region  Movement Functions
 
 
+	// Move along the Y axis
+	void MoveUp(float value);
 
-	void MoveForward(float value);
-
+	// Move along the X axis
 	void MoveRight(float value);
 
-	// Get the value returned from the y axis of the controller
+	void OnMove(float value, FVector dir);
+
+	// Get the value returned from the y axis of the controller's left axis stick 
 	void LookUp(float value);
 
-	// Get the value returned from the x axis of the controller
+	// Get the value returned from the x axis of the controller's left axis stick
 	void LookRight(float value);
 
-	/*  
-		Rotate character to the desired direction. 
-		This is based on the desired direction given from player input
-	*/
-	void Turn();
+	// Rotate the character, and handle all aiming logic 
+	void AimTurn();
 
-	// Rotate character to the desired direction based on a given direction
+	// Rotate character based on a given direction
 	void Turn(FVector direction);
+
+	void SetWalkSpeed(float value);
+
 
 #pragma endregion
 
 #pragma region Action Functions
-
+	
 	void StartSprint();
 
 	void StopSprint();
-
-	/// TODO: FIX LATER
-	/** <summary>Moves the character at a desired input value</summary>
-		@inputVal - The input value which to move the character
-		@dir - direction to move in*/
-	void OnMove(float inputVal, FVector dir);
-
-	/** <summary>Character sprints at a desired input value</summary>
-		@inputVal - The input value which to move the character
-		@storedDir - Stored direction of character.
-		@dir - direction to sprint
-		@turnResist - if true, resists between the inputVal, and the storedDir*/
-	void OnSprint(float inputVal, float storedDir, FVector dir, bool turnResist);
-	///
 
 	void FireWeapon();
 
@@ -100,13 +89,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float AimWalkSpeed;
 
-	// Resistance while sprinting
-	UPROPERTY(EditDefaultsOnly, Category = "Player", meta=(ClampMin= 0.1))
-	float SprintTurnResistRate;
-
-	// If true, adds turn resistance when sprinting. 
-	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
-	bool bSprintTurnResist;
+	/* Sets the tolerance for which the character's walk speed 
+		will change while aiming, and walking backwards (the smaller the less tolerance). */
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = -1, ClampMax = 1.f))
+	float AimWalkBackTolerance;
 	
 	FVector DesiredDirection;
 

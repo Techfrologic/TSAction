@@ -43,15 +43,14 @@ void ATSProjectileWeapon::StartFire()
 	// Getting the greater value between the calculated delay and 0.
 	float firstDelay = FMath::Max((LastFireTime + TimeBetweenShots) - GetWorld()->TimeSeconds, 0.f);
 	
-	GetWorld()->GetTimerManager().SetTimer(TimerHandler_TimeBetweenShots, this, 
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_TimeBetweenShots, this,
 		&ATSProjectileWeapon::Fire, TimeBetweenShots, true, firstDelay);
-
-	LastFireTime = GetWorld()->GetTimeSeconds();
 }
 
 void ATSProjectileWeapon::StopFire()
 {
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandler_TimeBetweenShots);
+	LastFireTime += FiringBuffer;
 }
 
 // Called when the game starts or when spawned
