@@ -53,7 +53,11 @@ protected:
 
 #pragma region Action Functions
 	
-	void StartSprint();
+	// Handles sprinting input
+	void OnStartSprint();
+
+	// Handles cancel sprinting input
+	void OnCancelSprint();
 
 	void StopSprint();
 
@@ -75,10 +79,13 @@ protected:
 	float GamepadDeadZone;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
-	bool bWantsToAim;
+	bool bIsAiming;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Player")
-	bool bWantsToSprint;
+	bool bIsSprinting;
+
+	// If true, the player wanted to cancel sprint manually
+	bool bManualCancelSprint;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float SprintSpeed;
@@ -88,7 +95,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float AimWalkSpeed;
-
+	
 	/* Sets the tolerance for which the character's walk speed 
 		will change while aiming, and walking backwards (the smaller the less tolerance). */
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = -1, ClampMax = 1.f))
@@ -100,6 +107,8 @@ protected:
 	TSubclassOf<ATSProjectileWeapon> StartWeapon;
 
 	ATSProjectileWeapon* CurrentWeapon;
+
+	FTimerHandle TimerHandle_OnSprint;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName ProjWeaponSocketName;
