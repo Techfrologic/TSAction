@@ -43,9 +43,6 @@ protected:
 	// Rotate the character, and handle all aiming logic 
 	void AimTurn();
 
-	// Rotate character based on a given direction
-	void Turn(FVector direction);
-
 	void SetWalkSpeed(float value);
 
 
@@ -95,13 +92,20 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float AimWalkSpeed;
-	
+
+	// Rotation which the player turns while sprinting
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.f))
+	float SprintRotRate;
+
+	float DefaultRotationRate;
+
 	/* Sets the tolerance for which the character's walk speed 
 		will change while aiming, and walking backwards (the smaller the less tolerance). */
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = -1, ClampMax = 1.f))
 	float AimWalkBackTolerance;
 	
-	FVector DesiredDirection;
+	// Holds the direction which is passed when the character aims
+	FVector AimDirection;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<ATSProjectileWeapon> StartWeapon;

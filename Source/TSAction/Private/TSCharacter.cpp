@@ -37,13 +37,16 @@ ATSCharacter::ATSCharacter()
 	// Rotation / Aiming
 	bIsAiming = false;
 	AimWalkBackTolerance = -0.5f;
+	DefaultRotationRate = 1080.f;
+	SprintRotRate = 180.f;
 
 	bUseControllerRotationYaw = false;	// if true, causes snapping to control direction
 	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Allows smooth rotation
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Keep false; will override Aiming
-	GetCharacterMovement()->RotationRate.Yaw = 1080.f;
+	GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
+	GetCharacterMovement()->bForceMaxAccel = true;
 
-	DesiredDirection = FVector::ZeroVector;
+	AimDirection = FVector::ZeroVector;
 
 	// Movement
 	GetCharacterMovement()->MaxAcceleration = 5000.f;
@@ -72,9 +75,9 @@ void ATSCharacter::BeginPlay()
 		SpawnParams.Owner = this;
 		SpawnParams.Instigator = this;
 		
-		auto AttachRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget,false);
+		auto AttachRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false);
 		
-		CurrentWeapon = GetWorld()->SpawnActor<ATSProjectileWeapon>(StartWeapon, FVector::ZeroVector, 
+		CurrentWeapon = GetWorld()->SpawnActor<ATSProjectileWeapon>(StartWeapon, FVector::ZeroVector,
 			FRotator::ZeroRotator, SpawnParams);
 		CurrentWeapon->AttachToComponent(GetMesh(), AttachRules, ProjWeaponSocketName);
 	}
@@ -88,7 +91,7 @@ void ATSCharacter::Tick(float DeltaTime)
 #pragma region Turn functionality
 
 	// Turn if desired 
-	bIsAiming = (DesiredDirection.Size() > GamepadDeadZone) ? true : false;
+	bIsAiming = (AimDirection.Size() > GamepadDeadZone) ? true : false;
 	if (bIsAiming && !bIsSprinting)
 	{
 		AimTurn();
@@ -99,10 +102,9 @@ void ATSCharacter::Tick(float DeltaTime)
 	}
 
 	// Turn in direction of moving
-	FVector AccDirection = GetCharacterMovement()->GetCurrentAcceleration();
-	if (!bIsAiming && AccDirection != FVector::ZeroVector)
+	if (!bIsAiming && GetVelocity() != FVector::ZeroVector)
 	{
-		Turn(AccDirection);
+		GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 
 #pragma endregion
@@ -145,6 +147,7 @@ void ATSCharacter::Tick(float DeltaTime)
 
 void ATSCharacter::MoveUp(float value)
 {
+	
 	FVector moveY = FVector(0.f, 1.f, 0.f);
 	OnMove(value, moveY);
 }
@@ -158,27 +161,30 @@ void ATSCharacter::MoveRight(float value)
 void ATSCharacter::OnMove(float value, FVector dir)
 {
 	AddMovementInput(dir * value);
-	if (!bIsAiming && !bIsSprinting)
+	if (!bIsSprinting)
 	{
-		SetWalkSpeed(JogSpeed);
+		//SetWalkSpeed(JogSpeed);
 	}
+	
 }
 #pragma endregion
 
 #pragma region Turn/Aiming Functions
 void ATSCharacter::LookUp(float value)
 {
-	DesiredDirection.Y = value;
+	AimDirection.Y = value;
 }
 
 void ATSCharacter::LookRight(float value)
 {
-	DesiredDirection.X = value;
+	AimDirection.X = value;
 }
 
 void ATSCharacter::AimTurn()
 {	
-	GetController()->SetControlRotation(DesiredDirection.Rotation());
+	// Rotate based on desired aim direction
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetController()->SetControlRotation(AimDirection.Rotation());
 
 	// Slow down character if walking backwards and aiming
 	if (bIsAiming)
@@ -194,11 +200,6 @@ void ATSCharacter::AimTurn()
 			SetWalkSpeed(JogSpeed);
 		}
 	}
-}
-
-void ATSCharacter::Turn(FVector direction)
-{
-	GetController()->SetControlRotation(direction.Rotation());
 }
 
 void ATSCharacter::SetWalkSpeed(float value)
@@ -230,6 +231,8 @@ void ATSCharacter::OnStartSprint()
 	{
 		bIsSprinting = true;
 		SetWalkSpeed(SprintSpeed);
+
+		GetCharacterMovement()->RotationRate.Yaw = SprintRotRate;
 	}
 }
 
@@ -262,6 +265,7 @@ void ATSCharacter::StopSprint()
 		{
 			bIsSprinting = false;
 			SetWalkSpeed(JogSpeed);
+			GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_OnSprint);
 		}
 	}
