@@ -12,6 +12,10 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "TSAction.h"
+#include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
+#include "Abilities/GameplayAbilityTypes.h"
+
 
 #pragma region Constants
 // Analog Axes names
@@ -34,6 +38,9 @@ ATSCharacter::ATSCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArm);
 
+	// Ability System Component
+	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+
 	// Rotation / Aiming
 	bIsAiming = false;
 	AimWalkBackTolerance = -0.5f;
@@ -55,11 +62,12 @@ ATSCharacter::ATSCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 	AimWalkSpeed = JogSpeed / 2;
 	bIsSprinting = false;
+	GamepadDeadZone = 0.25f;
 
 	// Weapon
 	ProjWeaponSocketName = "ProjectileWeaponSocket";
 
-	GamepadDeadZone = 0.25f;
+
 }
 
 // Called when the game starts or when spawned
@@ -81,6 +89,21 @@ void ATSCharacter::BeginPlay()
 			FRotator::ZeroRotator, SpawnParams);
 		CurrentWeapon->AttachToComponent(GetMesh(), AttachRules, ProjWeaponSocketName);
 	}
+
+	// Setup ability system
+	if (AbilitySystem)
+	{
+		if (HasAuthority() && Ability)
+		{
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability.GetDefaultObject()));
+		}
+		AbilitySystem->InitAbilityActorInfo(this, this);
+	}
+}
+
+UAbilitySystemComponent * ATSCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystem;
 }
 
 // Called every frame
@@ -289,8 +312,6 @@ void ATSCharacter::StopFiring()
 
 #pragma endregion
 
-
-
 // Called to bind functionality to input
 void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -313,5 +334,8 @@ void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Firing weapon
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacter::FireWeapon);
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacter::StopFiring);
+
+	// Abilities
+	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", "AbilityInput"));
 }
 

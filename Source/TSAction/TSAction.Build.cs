@@ -8,7 +8,7 @@ public class TSAction : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "GameplayTags", "GameplayTasks", "GameplayAbilities" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

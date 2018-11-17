@@ -4,14 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
 #include "TSCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
 class ATSProjectileWeapon;
+class UAbilitySystemComponent;
+class UGameplayAbility;
+
+UENUM(BlueprintType)
+enum class AbilityInput : uint8 
+{
+	SprintAbility UMETA(DisplayName = "Use Sprint"),
+	WeaponAbility UMETA(DisplayName = "Use Weapon")
+};
 
 UCLASS()
-class TSACTION_API ATSCharacter : public ACharacter
+class TSACTION_API ATSCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -63,14 +73,22 @@ protected:
 	void StopFiring();
 #pragma endregion
 
+protected:
+	
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category="Player")
+	UPROPERTY(VisibleAnywhere, Category="Camera")
 	UCameraComponent* CameraComp;
 
-	UPROPERTY(VisibleAnywhere, Category="Player")
+	UPROPERTY(VisibleAnywhere, Category="Camera")
 	USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Abilities)
+	TSubclassOf<UGameplayAbility> Ability;
 
 	// The deadzone of the analog stick axes.
 	float GamepadDeadZone;
@@ -96,7 +114,6 @@ protected:
 	// Rotation which the player turns while sprinting
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.f))
 	float SprintRotRate;
-
 	float DefaultRotationRate;
 
 	/* Sets the tolerance for which the character's walk speed 
@@ -109,13 +126,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<ATSProjectileWeapon> StartWeapon;
-
 	ATSProjectileWeapon* CurrentWeapon;
-
-	FTimerHandle TimerHandle_OnSprint;
-
+	
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName ProjWeaponSocketName;
+
+	FTimerHandle TimerHandle_OnSprint;
 
 public:	
 	// Called every frame
@@ -123,4 +139,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 };
