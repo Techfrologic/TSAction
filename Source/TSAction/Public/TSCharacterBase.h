@@ -5,10 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "TSCharacter.generated.h"
+#include "TSCharacterBase.generated.h"
 
-class UCameraComponent;
-class USpringArmComponent;
 class ATSProjectileWeapon;
 class UAbilitySystemComponent;
 class UGameplayAbility;
@@ -21,13 +19,13 @@ enum class AbilityInput : uint8
 };
 
 UCLASS()
-class TSACTION_API ATSCharacter : public ACharacter, public IAbilitySystemInterface
+class TSACTION_API ATSCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	ATSCharacter();
+	ATSCharacterBase();
 
 protected:
 	// Called when the game starts or when spawned
@@ -78,12 +76,6 @@ protected:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category="Camera")
-	UCameraComponent* CameraComp;
-
-	UPROPERTY(VisibleAnywhere, Category="Camera")
-	USpringArmComponent* SpringArm;
-
 	UPROPERTY(VisibleAnywhere, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystem;
 
@@ -102,9 +94,11 @@ protected:
 	// If true, the player wanted to cancel sprint manually
 	bool bManualCancelSprint;
 
+	// Speed to move while sprinting. Overrides Character Movement walk speed
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float SprintSpeed;
 
+	// Speed to move while moving normally. Overrides Character Movement walk speed
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float JogSpeed;
 

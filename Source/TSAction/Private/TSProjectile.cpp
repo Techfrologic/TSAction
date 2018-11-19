@@ -43,7 +43,7 @@ void ATSProjectile::HandleOnOverlap(UPrimitiveComponent * OverlappedComponent, A
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	// Apply damage to overlapped character that's not this owner
-	ATSCharacter* Enemy = Cast<ATSCharacter>(OtherActor);
+	ATSCharacterBase* Enemy = Cast<ATSCharacterBase>(OtherActor);
 	if (Enemy && Enemy != this->GetOwner())
 	{
 		UGameplayStatics::ApplyDamage(Enemy,BaseDamage,this->GetInstigatorController(), this, NULL);

@@ -27,7 +27,7 @@ void ATSProjectileWeapon::Fire()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.Owner = this;
-	SpawnParams.Instigator = Cast<ATSCharacter>(this->GetOwner());
+	SpawnParams.Instigator = Cast<ATSCharacterBase>(this->GetOwner());
 
 	if (Mesh != NULL && BulletType != NULL)
 	{

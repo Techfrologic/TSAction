@@ -1,9 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Public/TSCharacter.h"
+#include "Public/TSCharacterBase.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -26,17 +24,10 @@ FName L_ANALOG_X_AXIS_NAME = FName("MoveRight");
 #pragma endregion
 
 // Sets default values
-ATSCharacter::ATSCharacter()
+ATSCharacterBase::ATSCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	// Camera Component
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(SpringArm);
 
 	// Ability System Component
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
@@ -51,7 +42,6 @@ ATSCharacter::ATSCharacter()
 	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Allows smooth rotation
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Keep false; will override Aiming
 	GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
-	GetCharacterMovement()->bForceMaxAccel = true;
 
 	AimDirection = FVector::ZeroVector;
 
@@ -71,7 +61,7 @@ ATSCharacter::ATSCharacter()
 }
 
 // Called when the game starts or when spawned
-void ATSCharacter::BeginPlay()
+void ATSCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -101,13 +91,13 @@ void ATSCharacter::BeginPlay()
 	}
 }
 
-UAbilitySystemComponent * ATSCharacter::GetAbilitySystemComponent() const
+UAbilitySystemComponent * ATSCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystem;
 }
 
 // Called every frame
-void ATSCharacter::Tick(float DeltaTime)
+void ATSCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -135,20 +125,6 @@ void ATSCharacter::Tick(float DeltaTime)
 #pragma region Logs
 	if (GEngine)
 	{
-		// Manual Cancel Sprint
-		FString  ManCanSprMsg = FString::Printf(TEXT("Manual Cancel Sprint?: %s"), bManualCancelSprint ? TEXT("True") : TEXT("False"));
-		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, ManCanSprMsg);
-
-		// L analog stick X axis input
-		FString LAxisX = FString::Printf(TEXT("L analog X axis input: %s"),
-			*FString::SanitizeFloat(GetInputAxisValue(L_ANALOG_X_AXIS_NAME)));
-		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, LAxisX);
-
-		// L analog stick X axis input
-		FString LAxisY = FString::Printf(TEXT("L analog Y axis input: %s"),
-			*FString::SanitizeFloat(GetInputAxisValue(L_ANALOG_Y_AXIS_NAME)));
-		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, LAxisY);
-
 		// L analog stick XY input
 		FString LAxisValMsg = FString::Printf(TEXT("L analog vect size: %s"),
 			*FString::SanitizeFloat
@@ -168,42 +144,41 @@ void ATSCharacter::Tick(float DeltaTime)
 
 #pragma region Movement Functions
 
-void ATSCharacter::MoveUp(float value)
+void ATSCharacterBase::MoveUp(float value)
 {
-	
 	FVector moveY = FVector(0.f, 1.f, 0.f);
 	OnMove(value, moveY);
 }
 
-void ATSCharacter::MoveRight(float value)
+void ATSCharacterBase::MoveRight(float value)
 {
 	FVector moveX = FVector(1.f, 0.f, 0.f);
 	OnMove(value, moveX);
 }
 
-void ATSCharacter::OnMove(float value, FVector dir)
+void ATSCharacterBase::OnMove(float value, FVector dir)
 {
 	AddMovementInput(dir * value);
-	if (!bIsSprinting)
+	if (!bIsAiming && !bIsSprinting)
 	{
-		//SetWalkSpeed(JogSpeed);
+		SetWalkSpeed(JogSpeed);
 	}
 	
 }
 #pragma endregion
 
 #pragma region Turn/Aiming Functions
-void ATSCharacter::LookUp(float value)
+void ATSCharacterBase::LookUp(float value)
 {
 	AimDirection.Y = value;
 }
 
-void ATSCharacter::LookRight(float value)
+void ATSCharacterBase::LookRight(float value)
 {
 	AimDirection.X = value;
 }
 
-void ATSCharacter::AimTurn()
+void ATSCharacterBase::AimTurn()
 {	
 	// Rotate based on desired aim direction
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -225,7 +200,7 @@ void ATSCharacter::AimTurn()
 	}
 }
 
-void ATSCharacter::SetWalkSpeed(float value)
+void ATSCharacterBase::SetWalkSpeed(float value)
 {
 	if (value > 0.f)
 	{
@@ -239,7 +214,7 @@ void ATSCharacter::SetWalkSpeed(float value)
 
 #pragma region Action Functions
 
-void ATSCharacter::OnStartSprint()
+void ATSCharacterBase::OnStartSprint()
 {
 	// Cancel sprint if already sprinting
 	if (bIsSprinting)
@@ -259,13 +234,13 @@ void ATSCharacter::OnStartSprint()
 	}
 }
 
-void ATSCharacter::OnCancelSprint()
+void ATSCharacterBase::OnCancelSprint()
 {
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_OnSprint, this, 
-		&ATSCharacter::StopSprint, 0.1f, true, 0.f);
+		&ATSCharacterBase::StopSprint, 0.1f, true, 0.f);
 }
 
-void ATSCharacter::StopSprint()
+void ATSCharacterBase::StopSprint()
 {
 	// Cancel sprint manually
 	if (bManualCancelSprint)
@@ -294,7 +269,7 @@ void ATSCharacter::StopSprint()
 	}
 }
 
-void ATSCharacter::FireWeapon()
+void ATSCharacterBase::FireWeapon()
 {
 	if (CurrentWeapon && !bIsSprinting)
 	{
@@ -302,7 +277,7 @@ void ATSCharacter::FireWeapon()
 	}
 }
 
-void ATSCharacter::StopFiring()
+void ATSCharacterBase::StopFiring()
 {
 	if (CurrentWeapon)
 	{
@@ -313,27 +288,27 @@ void ATSCharacter::StopFiring()
 #pragma endregion
 
 // Called to bind functionality to input
-void ATSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ATSCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// Movement binding
-	PlayerInputComponent->BindAxis(L_ANALOG_Y_AXIS_NAME, this, &ATSCharacter::MoveUp);
-	PlayerInputComponent->BindAxis(L_ANALOG_X_AXIS_NAME, this, &ATSCharacter::MoveRight);
+	PlayerInputComponent->BindAxis(L_ANALOG_Y_AXIS_NAME, this, &ATSCharacterBase::MoveUp);
+	PlayerInputComponent->BindAxis(L_ANALOG_X_AXIS_NAME, this, &ATSCharacterBase::MoveRight);
 
 	// Aiming
-	PlayerInputComponent->BindAxis(R_ANALOG_Y_AXIS_NAME, this, &ATSCharacter::LookUp);
-	PlayerInputComponent->BindAxis(R_ANALOG_X_AXIS_NAME, this, &ATSCharacter::LookRight);
+	PlayerInputComponent->BindAxis(R_ANALOG_Y_AXIS_NAME, this, &ATSCharacterBase::LookUp);
+	PlayerInputComponent->BindAxis(R_ANALOG_X_AXIS_NAME, this, &ATSCharacterBase::LookRight);
 
 	// Actions
 
 	// Sprinting
-	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ATSCharacter::OnStartSprint);
-	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ATSCharacter::OnCancelSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ATSCharacterBase::OnStartSprint);
+	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ATSCharacterBase::OnCancelSprint);
 
 	// Firing weapon
-	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacter::FireWeapon);
-	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacter::StopFiring);
+	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacterBase::FireWeapon);
+	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacterBase::StopFiring);
 
 	// Abilities
 	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", "AbilityInput"));
