@@ -10,9 +10,6 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "TSAction.h"
-#include "AbilitySystemComponent.h"
-#include "Abilities/GameplayAbility.h"
-#include "Abilities/GameplayAbilityTypes.h"
 
 
 #pragma region Constants
@@ -29,20 +26,14 @@ ATSCharacterBase::ATSCharacterBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Ability System Component
-	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
-
 	// Rotation / Aiming
 	bIsAiming = false;
 	AimWalkBackTolerance = -0.5f;
 	DefaultRotationRate = 1080.f;
-	SprintRotRate = 180.f;
-
 	bUseControllerRotationYaw = false;	// if true, causes snapping to control direction
 	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Allows smooth rotation
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Keep false; will override Aiming
 	GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
-
 	AimDirection = FVector::ZeroVector;
 
 	// Movement
@@ -56,7 +47,6 @@ ATSCharacterBase::ATSCharacterBase()
 
 	// Weapon
 	ProjWeaponSocketName = "ProjectileWeaponSocket";
-
 
 }
 
@@ -79,22 +69,8 @@ void ATSCharacterBase::BeginPlay()
 			FRotator::ZeroRotator, SpawnParams);
 		CurrentWeapon->AttachToComponent(GetMesh(), AttachRules, ProjWeaponSocketName);
 	}
-
-	// Setup ability system
-	if (AbilitySystem)
-	{
-		if (HasAuthority() && Ability)
-		{
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability.GetDefaultObject()));
-		}
-		AbilitySystem->InitAbilityActorInfo(this, this);
-	}
 }
 
-UAbilitySystemComponent * ATSCharacterBase::GetAbilitySystemComponent() const
-{
-	return AbilitySystem;
-}
 
 // Called every frame
 void ATSCharacterBase::Tick(float DeltaTime)
@@ -229,8 +205,6 @@ void ATSCharacterBase::OnStartSprint()
 	{
 		bIsSprinting = true;
 		SetWalkSpeed(SprintSpeed);
-
-		GetCharacterMovement()->RotationRate.Yaw = SprintRotRate;
 	}
 }
 
@@ -310,7 +284,5 @@ void ATSCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacterBase::FireWeapon);
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacterBase::StopFiring);
 
-	// Abilities
-	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", "AbilityInput"));
 }
 

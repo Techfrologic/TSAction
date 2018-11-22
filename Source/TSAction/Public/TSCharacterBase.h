@@ -4,22 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "AbilitySystemInterface.h"
 #include "TSCharacterBase.generated.h"
 
 class ATSProjectileWeapon;
-class UAbilitySystemComponent;
-class UGameplayAbility;
-
-UENUM(BlueprintType)
-enum class AbilityInput : uint8 
-{
-	SprintAbility UMETA(DisplayName = "Use Sprint"),
-	WeaponAbility UMETA(DisplayName = "Use Weapon")
-};
 
 UCLASS()
-class TSACTION_API ATSCharacterBase : public ACharacter, public IAbilitySystemInterface
+class TSACTION_API ATSCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -76,12 +66,6 @@ protected:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category = "Abilities")
-	UAbilitySystemComponent* AbilitySystem;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Abilities)
-	TSubclassOf<UGameplayAbility> Ability;
-
 	// The deadzone of the analog stick axes.
 	float GamepadDeadZone;
 	
@@ -99,15 +83,12 @@ protected:
 	float SprintSpeed;
 
 	// Speed to move while moving normally. Overrides Character Movement walk speed
-	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float JogSpeed;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float AimWalkSpeed;
 
-	// Rotation which the player turns while sprinting
-	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.f))
-	float SprintRotRate;
 	float DefaultRotationRate;
 
 	/* Sets the tolerance for which the character's walk speed 
@@ -133,6 +114,4 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 };

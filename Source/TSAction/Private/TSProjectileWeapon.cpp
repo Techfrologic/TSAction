@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Public/TSProjectileWeapon.h"
-#include "Public/TSCharacter.h"
+#include "Public/TSCharacterBase.h"
 #include "Public/TSProjectile.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine.h"

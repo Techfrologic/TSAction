@@ -4,7 +4,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Public/TSCharacter.h"
+#include "Public/TSCharacterBase.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ATSProjectile::ATSProjectile()
@@ -12,19 +13,22 @@ ATSProjectile::ATSProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Mesh setup setup
+	// Mesh Collision setup 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	/*
 	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Overlap);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody, ECollisionResponse::ECR_Overlap);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
+	*/
 	Mesh->OnComponentBeginOverlap.AddDynamic(this, &ATSProjectile::HandleOnOverlap);
 	RootComponent = Mesh;
 
 	Mesh->SetSimulatePhysics(true);
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComp"));
-
+	
 	BaseDamage = 20.f;
 
 	LifeSpan = 3.f;
@@ -41,14 +45,15 @@ void ATSProjectile::BeginPlay()
 
 void ATSProjectile::HandleOnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
+{ 
 	// Apply damage to overlapped character that's not this owner
 	ATSCharacterBase* Enemy = Cast<ATSCharacterBase>(OtherActor);
 	if (Enemy && Enemy != this->GetOwner())
 	{
 		UGameplayStatics::ApplyDamage(Enemy,BaseDamage,this->GetInstigatorController(), this, NULL);
-		this->Destroy();
 	}
+	DrawDebugSphere(GetWorld(), GetActorLocation(), 20.f, 12, FColor::Yellow, false, 2.f, 0, 1.f);
+	this->Destroy();
 }
 
 // Called every frame
