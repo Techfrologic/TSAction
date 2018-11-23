@@ -5,6 +5,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Public/TSAbilityComponentBase.h"
 #include "Public/TSProjectileWeapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
@@ -47,6 +48,9 @@ ATSCharacterBase::ATSCharacterBase()
 
 	// Weapon
 	ProjWeaponSocketName = "ProjectileWeaponSocket";
+
+	// Abilities
+	AbilitySystem = CreateDefaultSubobject<UTSAbilityComponentBase>(TEXT("AbilitySystem"));
 
 }
 
@@ -284,5 +288,7 @@ void ATSCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacterBase::FireWeapon);
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacterBase::StopFiring);
 
+	// Ability inputs
+	AbilitySystem->SetupAbilityInputs(PlayerInputComponent);
 }
 

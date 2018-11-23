@@ -7,6 +7,7 @@
 #include "TSCharacterBase.generated.h"
 
 class ATSProjectileWeapon;
+class UTSAbilityComponentBase;
 
 UCLASS()
 class TSACTION_API ATSCharacterBase : public ACharacter
@@ -62,7 +63,8 @@ protected:
 #pragma endregion
 
 protected:
-	
+	UPROPERTY(VisibleAnywhere, Category= "Components")
+	UTSAbilityComponentBase* AbilitySystem;
 
 protected:
 
