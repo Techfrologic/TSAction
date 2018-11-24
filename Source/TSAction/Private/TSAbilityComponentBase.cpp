@@ -2,6 +2,7 @@
 
 #include "Public/TSAbilityComponentBase.h"
 #include "Public/TSAbilityBase.h"
+#include "TSAction.h"
 
 // Sets default values for this component's properties
 UTSAbilityComponentBase::UTSAbilityComponentBase()
@@ -18,7 +19,22 @@ void UTSAbilityComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	// Assign ability owners
+	SetAbilityOwners();
+}
+
+void UTSAbilityComponentBase::SetAbilityOwners()
+{
+	for (auto ab : Abilities)
+	{
+		if (ab)
+		{
+			ab.GetDefaultObject()->SetAbilityOwner(GetOwner());
+
+			UE_LOG(LogAbility, Log,TEXT("%s ability owner is %s"),
+				*ab.GetDefaultObject()->GetFName().ToString(), *ab.GetDefaultObject()->GetOwner()->GetFName().ToString());
+		}
+	}
 }
 
 void UTSAbilityComponentBase::SetupAbilityInputs(UInputComponent * PawnInputComponent)
@@ -28,13 +44,7 @@ void UTSAbilityComponentBase::SetupAbilityInputs(UInputComponent * PawnInputComp
 		if (ab && PawnInputComponent)
 		{
 			ab.GetDefaultObject()->SetupAbilityInput(PawnInputComponent);
-
-			//UTSAbilityBase* Ability = ab.GetDefaultObject();
-			//PawnInputComponent->BindAction(
-			//	Ability->AbilityElements.AbilityName, Ability->AbilityElements.KeyEvent,
-			//	GetOwner(), &GetOwner():);
 		}
-		
 	}
 }
 

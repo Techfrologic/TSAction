@@ -27,8 +27,10 @@ class TSACTION_API ITSAbilityInterface
 
 public:
 	UFUNCTION()
-	virtual void Activate(AActor* ForActor)=0;
-	
+	virtual void Activate()=0;
+
+	UFUNCTION()
+		virtual void Expire() = 0;
 protected:
 	virtual void SetupAbilityInput(class UInputComponent* PlayerInputComponent) =0;
 };

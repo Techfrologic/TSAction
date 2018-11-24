@@ -7,29 +7,36 @@
 #include "UObject/NoExportTypes.h"
 #include "TSAbilityBase.generated.h"
 
+
+class UTSAbilityComponent;
+
 // Elements which make up ability functionality
-USTRUCT()
+USTRUCT(Blueprintable)
 struct TSACTION_API FAbilityElements
 {
 	GENERATED_BODY()
 
-		// The name of the ability
-
-		UPROPERTY(EditDefaultsOnly, Category = "AbilityElements")
-		FName AbilityName;
+	// The name of the ability
+	UPROPERTY(EditDefaultsOnly, Category = "AbilityElements")
+	FName AbilityName;
 
 	// If true, allows the ability to be activated
-	UPROPERTY(EditDefaultsOnly, Category = "AbilityElements")
-		bool bIsUnlocked;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AbilityElements")
+	bool bIsUnlocked;
 
 	// The type of input used to activate ability
 	UPROPERTY(EditDefaultsOnly, Category = "AbilityElements")
-		TEnumAsByte<EInputEvent> KeyEvent;
+	TEnumAsByte<EInputEvent> KeyEvent;
+
+	// This Ability's owner
+	AActor* Owner;
+
+	bool bIsActive;
 };
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class TSACTION_API UTSAbilityBase : public UObject, public ITSAbilityInterface
 {
 	GENERATED_BODY()
@@ -40,16 +47,29 @@ public:
 	UTSAbilityBase();
 
 	UFUNCTION()
-	void Activate(AActor* ForActor) override;
+	void Activate() override;
+
+	UFUNCTION()
+	void Expire() override;
+
+	void SetAbilityOwner(AActor* NewOwner);
+
+	void SetAbilityOwner(UTSAbilityComponentBase* AbilityComponent);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	AActor* GetOwner() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	bool IsActive() const;
 
 protected:
-	// Handles functionality when ability component is activated. Is a BlueprintNativeEvent
+	// Handles functionality when ability is activated.
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Ability")
-		void OnActivated(AActor* ForActor);
+	void OnActivated(AActor* Owner);
 
-	// Handles functionality when ability component has expired. Is a BlueprintNativeEvent
+	// Handles functionality when ability component has expired.
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Ability")
-		void OnExpired();
+	void OnExpired(AActor* Owner);
 
 	/**<summary>Binds this ability's functionality</summary>
 		<param>PlayerInputComponent - The Actor InputComponent who will be using the ability</param>
@@ -60,4 +80,6 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	FAbilityElements AbilityElements;
+
+	FTimerHandle TimerHandle_ActivateAbility;
 };

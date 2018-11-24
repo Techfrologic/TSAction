@@ -20,6 +20,9 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	// Assign the owner of each ability 
+	void SetAbilityOwners();
+
 protected:
 
 	// List of abilities for this component
