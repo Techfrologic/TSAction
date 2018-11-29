@@ -31,6 +31,8 @@ struct TSACTION_API FAbilityElements
 	// This Ability's owner
 	AActor* Owner;
 
+	UWorld* CurrentWorld;
+
 	bool bIsActive;
 };
 /**
@@ -47,32 +49,40 @@ public:
 	UTSAbilityBase();
 
 	UFUNCTION()
-	void Activate() override;
-
+	virtual void Activate();
+	
 	UFUNCTION()
-	void Expire() override;
+	virtual void Expire();
 
 	void SetAbilityOwner(AActor* NewOwner);
 
 	void SetAbilityOwner(UTSAbilityComponentBase* AbilityComponent);
 
+	void SetWorld(UWorld* NewWorld);
+
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	AActor* GetOwner() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	UWorld* GetWorld() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	bool IsActive() const;
 
 protected:
 	// Handles functionality when ability is activated.
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Ability")
-	void OnActivated(AActor* Owner);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Ability")
+	void OnActivated(AActor* Owner) override;
+	virtual void OnActivated_Implementation(AActor* Owner) { return; };
+
 
 	// Handles functionality when ability component has expired.
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Ability")
-	void OnExpired(AActor* Owner);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Ability")
+	void OnExpired(AActor* Owner) override;
+	virtual void OnExpired_Implementation(AActor* Owner) { return; };
 
 	/**<summary>Binds this ability's functionality</summary>
-		<param>PlayerInputComponent - The Actor InputComponent who will be using the ability</param>
+		@PlayerInputComponent - The Pawn's InputComponent who will be using the ability
 		@return - new binding action of this type, based on the ability's name.
 	*/
 	virtual void SetupAbilityInput(class UInputComponent* PlayerInputComponent) override;
@@ -80,6 +90,4 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	FAbilityElements AbilityElements;
-
-	FTimerHandle TimerHandle_ActivateAbility;
 };

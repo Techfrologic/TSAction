@@ -23,6 +23,10 @@ protected:
 	// Assign the owner of each ability 
 	void SetAbilityOwners();
 
+	void SetAbilityWorld();
+
+	void SetupAbilities();
+
 protected:
 
 	// List of abilities for this component

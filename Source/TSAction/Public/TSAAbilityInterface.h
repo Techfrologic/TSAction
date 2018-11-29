@@ -26,11 +26,11 @@ class TSACTION_API ITSAbilityInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 
 public:
-	UFUNCTION()
-	virtual void Activate()=0;
+	
+	virtual void OnActivated(AActor* ForOwner)=0;
 
-	UFUNCTION()
-		virtual void Expire() = 0;
+	virtual void OnExpired(AActor* ForOwner)=0;
+
 protected:
 	virtual void SetupAbilityInput(class UInputComponent* PlayerInputComponent) =0;
 };

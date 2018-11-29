@@ -20,7 +20,7 @@ void UTSAbilityComponentBase::BeginPlay()
 	Super::BeginPlay();
 
 	// Assign ability owners
-	SetAbilityOwners();
+	SetupAbilities();
 }
 
 void UTSAbilityComponentBase::SetAbilityOwners()
@@ -35,6 +35,23 @@ void UTSAbilityComponentBase::SetAbilityOwners()
 				*ab.GetDefaultObject()->GetFName().ToString(), *ab.GetDefaultObject()->GetOwner()->GetFName().ToString());
 		}
 	}
+}
+
+void UTSAbilityComponentBase::SetAbilityWorld()
+{
+	for (auto ab : Abilities)
+	{
+		if (ab && GetWorld())
+		{
+			ab.GetDefaultObject()->SetWorld(GetWorld());
+		}
+	}
+}
+
+void UTSAbilityComponentBase::SetupAbilities()
+{
+	SetAbilityOwners();
+	SetAbilityWorld();
 }
 
 void UTSAbilityComponentBase::SetupAbilityInputs(UInputComponent * PawnInputComponent)

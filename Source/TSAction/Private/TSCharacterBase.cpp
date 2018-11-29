@@ -30,11 +30,10 @@ ATSCharacterBase::ATSCharacterBase()
 	// Rotation / Aiming
 	bIsAiming = false;
 	AimWalkBackTolerance = -0.5f;
-	DefaultRotationRate = 1080.f;
 	bUseControllerRotationYaw = false;	// if true, causes snapping to control direction
 	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Allows smooth rotation
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Keep false; will override Aiming
-	GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
+	GetCharacterMovement()->RotationRate.Yaw = 1080.f;
 	AimDirection = FVector::ZeroVector;
 
 	// Movement
@@ -241,7 +240,6 @@ void ATSCharacterBase::StopSprint()
 		{
 			bIsSprinting = false;
 			SetWalkSpeed(JogSpeed);
-			GetCharacterMovement()->RotationRate.Yaw = DefaultRotationRate;
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_OnSprint);
 		}
 	}
@@ -288,7 +286,7 @@ void ATSCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Pressed, this, &ATSCharacterBase::FireWeapon);
 	PlayerInputComponent->BindAction("FireWeapon", EInputEvent::IE_Released, this, &ATSCharacterBase::StopFiring);
 
-	// Ability inputs
+	// Ability Inputs
 	AbilitySystem->SetupAbilityInputs(PlayerInputComponent);
 }
 

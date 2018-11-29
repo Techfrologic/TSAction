@@ -11,6 +11,7 @@ UTSAbilityBase::UTSAbilityBase()
 	AbilityElements.bIsUnlocked = true;
 	AbilityElements.KeyEvent = EInputEvent::IE_Pressed;
 	AbilityElements.Owner = nullptr;
+	AbilityElements.CurrentWorld = nullptr;
 }
 
 void UTSAbilityBase::Activate()
@@ -47,11 +48,28 @@ void UTSAbilityBase::SetAbilityOwner(UTSAbilityComponentBase* AbilityComponent)
 	}
 }
 
+void UTSAbilityBase::SetWorld(UWorld * NewWorld)
+{
+	if (NewWorld)
+	{
+		AbilityElements.CurrentWorld = NewWorld;
+	}
+}
+
 AActor * UTSAbilityBase::GetOwner() const
 {
 	if (AbilityElements.Owner)
 	{
 		return AbilityElements.Owner;
+	}
+	return nullptr;
+}
+
+UWorld * UTSAbilityBase::GetWorld() const
+{
+	if (AbilityElements.CurrentWorld)
+	{
+		return AbilityElements.CurrentWorld;
 	}
 	return nullptr;
 }
@@ -66,7 +84,7 @@ void UTSAbilityBase::SetupAbilityInput(UInputComponent * PlayerInputComponent)
 {
 	// Custom input event
 	{
-		// Call Activate when the given input is pressed 
+		// Call "Activate" when the given input triggers
 		FInputActionHandlerSignature NewDel;
 		NewDel.BindUFunction(this, "Activate");
 
@@ -77,11 +95,12 @@ void UTSAbilityBase::SetupAbilityInput(UInputComponent * PlayerInputComponent)
 
 	// Opposing input 
 	{
-		// Call "Expire" when the given input 
+		// Call "Expire" when the opposite of the Activate input given is released  
 		FInputActionHandlerSignature NewDel;
 		NewDel.BindUFunction(this, "Expire");
 
-		EInputEvent CancelInput = AbilityElements.KeyEvent.GetValue() == EInputEvent::IE_Pressed ? EInputEvent::IE_Released : EInputEvent::IE_Pressed;
+		// Auto correct expire input
+		EInputEvent CancelInput = AbilityElements.KeyEvent.GetValue() != EInputEvent::IE_Released ? EInputEvent::IE_Pressed : EInputEvent::IE_Released;
 		FInputActionBinding NewAB(AbilityElements.AbilityName, CancelInput);
 		NewAB.ActionDelegate = NewDel;
 		PlayerInputComponent->AddActionBinding(NewAB);

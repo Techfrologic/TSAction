@@ -91,8 +91,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player", meta = (ClampMin = 0.1))
 	float AimWalkSpeed;
 
-	float DefaultRotationRate;
-
 	/* Sets the tolerance for which the character's walk speed 
 		will change while aiming, and walking backwards (the smaller the less tolerance). */
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = -1, ClampMax = 1.f))
