@@ -18,23 +18,9 @@ public:
 	UTSAbility_Dash();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "DashAbility", meta=(ClampMin = 0.f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DashMovement", meta=(ClampMin = 0.f))
 	float TravelDistance;
 
-	UPROPERTY(EditDefaultsOnly, Category = "DashAbility", meta = (ClampMin = 0.f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DashMovement", meta = (ClampMin = 0.f))
 	float TravelSpeed;
-
-	FTimerHandle TimerHandler_Dash;
-
-protected:
-
-	void OnDash();
-
-	void Dash();
-
-	void EndDash();
-
-	void OnActivated_Implementation(AActor* Owner) override;
-
-	void OnExpired_Implementation(AActor* Owner) override;
 };

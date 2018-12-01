@@ -15,17 +15,14 @@ ATSProjectile::ATSProjectile()
 
 	// Mesh Collision setup 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	/*
-	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody, ECollisionResponse::ECR_Overlap);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
-	*/
+	
+	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	
 	Mesh->OnComponentBeginOverlap.AddDynamic(this, &ATSProjectile::HandleOnOverlap);
 	RootComponent = Mesh;
 
-	Mesh->SetSimulatePhysics(true);
+	Mesh->SetSimulatePhysics(false);
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComp"));
 	
@@ -52,7 +49,8 @@ void ATSProjectile::HandleOnOverlap(UPrimitiveComponent * OverlappedComponent, A
 	{
 		UGameplayStatics::ApplyDamage(Enemy,BaseDamage,this->GetInstigatorController(), this, NULL);
 	}
-	DrawDebugSphere(GetWorld(), GetActorLocation(), 20.f, 12, FColor::Yellow, false, 2.f, 0, 1.f);
+
+	DrawDebugSphere(GetWorld(), GetActorLocation(), 20.f, 12, FColor::Yellow, false, 1.f, 0, 1.f);
 	this->Destroy();
 }
 
